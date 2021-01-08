@@ -41,7 +41,7 @@ endpoint=''
 
 echo
 echo
-echo "A useful tool presented by Solarmesh"
+echo "An useful tool presented by Solarmesh"
 echo
 status=1
 spin="/-\|"
