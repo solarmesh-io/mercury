@@ -16,9 +16,11 @@
 #####################################
 
 if [ "$1" == "-h" ] || [ "$1" == "" ]; then 
-echo "arguments are missing, please see below example"
+echo "command line help"
 echo ""
-echo "./setup.sh cluster-name api-server-port-number"
+echo "./setup.sh cluster-number api-server-port-number"
+echo ""
+echo "./setup.sh 1 6443"
 exit 0
 fi
 
@@ -111,7 +113,8 @@ echo ""
 echo "${ip}"
 echo ""
 
-cluster_name=$1
+cluster_num=$1
+cluster_name=cluster0${cluster_num}
 
 reg_name='kind-registry'
 reg_port='5000'
@@ -178,6 +181,20 @@ cluster=kind-$1
 kubectl --context $cluster apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.4/manifests/namespace.yaml
 kubectl --context $cluster -n metallb-system apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.4/manifests/metallb.yaml
 kubectl --context $cluster create secret generic -n metallb-system memberlist --from-literal=secretkey="$(openssl rand -base64 128)"
-kubectl --context $cluster -n metallb-system apply -f metallb-$1.yaml
+
+kubectl --context $cluster -n metallb-system apply -f - <<_EOF
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: metallb-system
+  name: config
+data:
+  config: |
+    address-pools:
+    - name: default
+      protocol: layer2
+      addresses:
+      - "172.18.25$cluster_num}.1-172.18.25$cluster_num}.255"
+_EOF
 
 echo '✔ Clusters have been created'
