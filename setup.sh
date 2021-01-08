@@ -179,6 +179,11 @@ cd "${work_dir}"
 cluster=kind-${cluster_name}
 
 kubectl --context $cluster apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.4/manifests/namespace.yaml
+errcode=$?
+if [[ ${errcode} != 0 ]]; then
+  echo "Error failed to install metallb"
+  exit ${errcode}
+fi
 kubectl --context $cluster -n metallb-system apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.4/manifests/metallb.yaml
 kubectl --context $cluster create secret generic -n metallb-system memberlist --from-literal=secretkey="$(openssl rand -base64 128)"
 
