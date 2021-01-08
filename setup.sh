@@ -178,8 +178,8 @@ cd "${work_dir}"
 
 cluster=kind-${cluster_name}
 
-kubectl --context $cluster apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.4/manifests/namespace.yaml
-kubectl --context $cluster -n metallb-system apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.4/manifests/metallb.yaml
+kubectl --context $cluster apply -f namespace.yaml
+kubectl --context $cluster -n metallb-system apply -f metallb.yaml
 kubectl --context $cluster create secret generic -n metallb-system memberlist --from-literal=secretkey="$(openssl rand -base64 128)"
 
 kubectl --context $cluster -n metallb-system apply -f - <<_EOF
@@ -194,7 +194,7 @@ data:
     - name: default
       protocol: layer2
       addresses:
-      - "172.18.25$cluster_num}.1-172.18.25$cluster_num}.255"
+      - "172.18.25${cluster_num}.1-172.18.25${cluster_num}.255"
 _EOF
 
 echo '✔ Clusters have been created'
