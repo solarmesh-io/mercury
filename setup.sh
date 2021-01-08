@@ -41,7 +41,7 @@ endpoint=''
 
 echo
 echo
-echo "An useful tool presented by Solarmesh"
+echo "An useful to create kind cluster that presented by Solarmesh"
 echo
 status=1
 spin="/-\|"
@@ -114,7 +114,7 @@ echo "${ip}"
 echo ""
 
 cluster_num=$1
-cluster_name=cluster0${cluster_num}
+cluster_name=cluster${cluster_num}
 
 reg_name='kind-registry'
 reg_port='5000'
@@ -140,7 +140,7 @@ function install_cluster() (
 
   kubeport=$2
 
-  cat <<EOF | kind create cluster --name $1 --image $kindImage --config=-
+  cat <<EOF | kind create cluster --name ${cluster_name} --image $kindImage --config=-
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 #containerdConfigPatches:
@@ -162,7 +162,7 @@ EOF
     kubectl annotate node "${node}" "kind.x-k8s.io/registry=localhost:${reg_port}";
   done
   printf "\n\n---\n"
-  echo "Finished setting up cluster $1"
+  echo "Finished setting up ${cluster_name}"
 
 )
 
@@ -176,7 +176,7 @@ cd "${work_dir}"
 
 # Post installations
 
-cluster=kind-$1
+cluster=kind-${cluster_name}
 
 kubectl --context $cluster apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.4/manifests/namespace.yaml
 kubectl --context $cluster -n metallb-system apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.4/manifests/metallb.yaml
