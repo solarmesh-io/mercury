@@ -91,9 +91,9 @@ spin="/-\|"
 
 
 function is_exist() {
-  which $1 2 &> /dev/null
+  which $1 &> /dev/null
   if [[ $? != 0 ]]; then
-    echo "$ does not exist, please install it first!"
+    echo "$1 does not exist, please install it first!"
     exit -1
   fi
 }
@@ -103,7 +103,7 @@ is_exist kubectl
 is_exist kind
 
 user_memory=$(free | awk '{print $7}' | awk 'NR==2')
-min_memory=2048000
+m:wqin_memory=2048000
 if [[ ${user_memory} -lt ${min_memory} ]]; then
   echo 'Error: At least 2G of available memory is required'
   exit 1
