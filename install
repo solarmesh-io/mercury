@@ -30,10 +30,6 @@ echo "   ./install cluster1 6441"
 exit 0
 fi
 
-if [ "$1" == "cleanup" ]; then
-  kind get clusters | grep -E '(cluster)-*' | while read -r r; do kind delete cluster --name $r; done
-  exit 0
-fi
 
 export COLOR_PREFIX="\e"
 export ECHO_E="echo -e"
@@ -79,16 +75,8 @@ export PATH=$PATH:${WORKSPACE}/bin
 
 status=1
 spin="/-\|"
-#  while true; do
-#     for (( i=0; i<${#spin}; i++ )); do
-#       echo -en "${spin:$i:1} Status ${status} / 1" "\r"
-#       sleep 0.2
-#     done
-#  done 
-# exit  
 
 # prerequisites
-
 
 function is_exist() {
   which $1 &> /dev/null
@@ -101,6 +89,27 @@ function is_exist() {
 is_exist docker
 is_exist kubectl
 is_exist kind
+
+cluster_num=$(kind get clusters | wc -l)
+
+if [ "$1" == "cleanup" ]; then
+
+  if [[ $((cluster_num)) > 0 ]]; then
+    $ECHO_E "${GREEN}Kind clusters: ${E_GREEN}" 
+    kind get clusters
+    $ECHO_E "${RED}Do you want to delete above KinD clusters? $E_RED"
+    while true; do
+      read -p "Type 'Y' to delete them all, or 'N' to skip: " yn 
+      case $yn in
+        [Yy]* ) break;;
+        [Nn]* ) exit 0;;
+        * ) echo "" ; echo "Please answer yes or no." ;;
+      esac
+    done    
+    kind get clusters | while read -r r; do kind delete cluster --name $r; done
+  fi
+  exit 0
+fi
 
 user_memory=$(free | awk '{print $7}' | awk 'NR==2')
 min_memory=2048000
@@ -118,8 +127,8 @@ menu() {
 }
 
 ip_addr=$(ip a | grep -v kube | grep -v 127.0.0.1 | grep -v docker | grep -v 'br\-' | grep inet | grep -v inet6 | sed 's/\//\ /g' | awk '{print $2}')
-options=(${ip_addr})
 
+options=(${ip_addr})
 options_num="${#options[@]}"
 #echo options_num: $options_num
 
@@ -159,9 +168,7 @@ fi
 
 ip="${ip#"${ip%%[![:space:]]*}"}"
 
-cluster_num=$(kind get clusters 2 &> /dev/null | wc -l)
 cluster_num=$((cluster_num + 1))
-
 cluster_name=$1
 
 echo $1 | grep -q "^[0-9]*$"
@@ -170,6 +177,7 @@ if [[ $? == 0 ]]; then
 else
   cluster_name=$1
 fi
+
 
 # check if cluster name is already exist
 if [[ $(kind get clusters 2 &> /dev/null | grep -cnw ${cluster_name}) -gt 0 ]]; then
@@ -202,7 +210,7 @@ kindImage=kindest/node:v1.17.5
 function install_cluster() (
   kubeport=$2
   if [[ "$2" == "" ]]; then
-    kubeport=644$1
+    kubeport=644${cluster_num}
   fi 
 
   cat <<EOF | kind create cluster --name ${cluster_name} --image $kindImage --config=-
