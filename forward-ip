@@ -1,0 +1,41 @@
+#!/bin/bash
+ACTION=$1
+CONTAINER_IP=$2
+CONTAINER_PORT=$3
+HOST_PORT=$4
+
+if [[ $# -lt 3 ]] || [[ "$1" == "-h" ]]; then
+    echo "Help:"
+    echo ""
+    echo "command:"
+    echo "    forward-ip [action] [container ip] [container port] "
+    echo ""
+    echo "Example: "
+    echo "    forward-ip add 172.18.251.2 80 8080"
+    echo "    forward-ip del 172.18.251.2 80 8080"
+    exit 0
+fi
+
+ip1=$(echo $CONTAINER_IP | cut -d "." -f 1)
+ip2=$(echo $CONTAINER_IP | cut -d "." -f 2)
+ip16=$ip1.$ip2
+INTERFACE=$(ip a | grep -v kube | grep -v docker | grep -vw '127.0.0.1' | grep inet | grep -v inet6 | sed 's/\//\ /g' | grep 172.18 | awk '{print $NF}')
+
+if [ "${ACTION}" == "add" ]; then
+    ACTION=A
+elif [ "${ACTION}" == "del" ]; then   
+    ACTION=D
+else
+    echo "unsupported action $1"
+    exit -1    
+fi
+
+if [ "${HOST_PORT}" == "" ]; then
+    HOST_PORT=${CONTAINER_PORT}
+fi
+
+iptables -t nat -${ACTION} POSTROUTING -p tcp --dport ${HOST_PORT} -s ${CONTAINER_IP} -d ${CONTAINER_IP} -j MASQUERADE
+iptables -t nat -${ACTION} DOCKER ! -i ${INTERFACE} -p tcp --dport ${HOST_PORT} -j DNAT --to-destination ${CONTAINER_IP}:${CONTAINER_PORT}
+
+iptables -t nat -nvL --line-number | grep MASQUERADE | grep ${HOST_PORT} | grep ${CONTAINER_IP}
+iptables -t nat -nvL --line-number | grep "${CONTAINER_IP}:${CONTAINER_PORT}"

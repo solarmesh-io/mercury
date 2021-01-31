@@ -1,11 +1,11 @@
-# kind-quick-start
+# Mercury 
 
-A script that start kind cluster with metalb
+`Mercury` is a tool that install Kubernetes KinD cluster with MetalLB in a few minutes.
 
 ## Getting started
 
 ```bash
-git clone https://github.com/john-deng/kind-quick-start.git
-cd kind-quick-start
-./setup.sh 1 6443
+git clone https://github.com/john-deng/mercury.git
+cd mercury
+./install
 ```
