@@ -275,7 +275,7 @@ data:
     - name: default
       protocol: layer2
       addresses:
-      - "${ip16}.25${cluster_num}.1-${ip16}172.18.25${cluster_num}.255"
+      - "${ip16}.25${cluster_num}.1-${ip16}.25${cluster_num}.255"
 _EOF
 
 echo -e "${GREEN}✔${E_GREEN} Mercury have been created"
