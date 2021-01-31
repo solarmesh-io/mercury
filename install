@@ -103,7 +103,7 @@ is_exist kubectl
 is_exist kind
 
 user_memory=$(free | awk '{print $7}' | awk 'NR==2')
-m:wqin_memory=2048000
+min_memory=2048000
 if [[ ${user_memory} -lt ${min_memory} ]]; then
   echo 'Error: At least 2G of available memory is required'
   exit 1
