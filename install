@@ -81,14 +81,22 @@ spin="/-\|"
 function is_exist() {
   which $1 &> /dev/null
   if [[ $? != 0 ]]; then
-    echo "$1 does not exist, please install it first!"
+    echo "$1 does not exist, please install $1 $2 or higher version"
     exit -1
   fi
 }
 
-is_exist docker
-is_exist kubectl
-is_exist kind
+is_exist docker v0.19.0
+is_exist kubectl v1.17.5
+is_exist kind v0.10.0
+
+if [[ $(docker network ls | grep -c kind) == 0 ]]; then
+  docker network create --driver=bridge \
+    --subnet=172.18.0.0/24 \
+    --gateway=172.18.0.1 \
+    -o 'com.docker.network.bridge.name=kind' kind
+fi
+
 
 cluster_num=$(kind get clusters | wc -l)
 
