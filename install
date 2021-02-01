@@ -97,7 +97,6 @@ if [[ $(docker network ls | grep -c kind) == 0 ]]; then
     -o 'com.docker.network.bridge.name=kind' kind
 fi
 
-
 cluster_num=$(kind get clusters | wc -l)
 
 if [ "$1" == "cleanup" ]; then
@@ -176,16 +175,19 @@ fi
 
 ip="${ip#"${ip%%[![:space:]]*}"}"
 
-cluster_num=$((cluster_num + 1))
 cluster_name=$1
-
+cluster_num=
 echo $1 | grep -q "^[0-9]*$"
 if [[ $? == 0 ]]; then
-  cluster_name=cluster${cluster_num}
+  cluster_num=$1
+  cluster_name=cluster$1
+  # echo "You choose to use $1"
 else
+  cluster_num=$((cluster_num + 1))
   cluster_name=$1
 fi
 
+echo "You are choosing to install KinD cluster: ${cluster_name}"
 
 # check if cluster name is already exist
 if [[ $(kind get clusters 2 &> /dev/null | grep -cnw ${cluster_name}) -gt 0 ]]; then
