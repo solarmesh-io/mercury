@@ -81,20 +81,27 @@ spin="/-\|"
 function is_exist() {
   which $1 &> /dev/null
   if [[ $? != 0 ]]; then
-    echo "$1 does not exist, please install $1 $2 or higher version"
-    echo "You may download it from this link: $3 "
+    if [[ "$3" == "install" ]]; then
+      echo "$1 does not exist, please install $1 $2 or higher version"
+      echo "You may install $1 follow the instructions here $4"
+    else
+      echo "$1 does not exist, installing $1 $2"
+      echo ""
+      sudo wget $4 -O /usr/local/bin/$1
+      sudo chmod +x /usr/local/bin/$1
+      echo ""
+      return
+    fi
     exit -1
   fi
 }
 
-is_exist docker v0.19.0 https://docs.docker.com/get-docker/
-is_exist kubectl v1.17.5 https://dl.k8s.io/release/v1.17.5/bin/linux/amd64/kubectl
-is_exist kind v0.10.0 http://share.solarmesh.cn/release/k8s/kind/Linux/kind
+is_exist docker v0.19.0 install "https://docs.docker.com/get-docker/"
+is_exist kubectl v1.17.5 download "https://dl.k8s.io/release/v1.17.5/bin/linux/amd64/kubectl"
+is_exist kind v0.10.0 download "https://github.com/kubernetes-sigs/kind/releases/download/v0.10.0/kind-linux-amd64"
 
 if [[ $(docker network ls | grep -c kind) == 0 ]]; then
   docker network create --driver=bridge \
-    --subnet=172.18.0.0/24 \
-    --gateway=172.18.0.1 \
     -o 'com.docker.network.bridge.name=kind' kind
 fi
 
@@ -103,9 +110,12 @@ cluster_num=$(kind get clusters | wc -l)
 if [ "$1" == "cleanup" ]; then
 
   if [[ $((cluster_num)) > 0 ]]; then
-    $ECHO_E "${GREEN}Kind clusters: ${E_GREEN}" 
+    $ECHO_E "${GREEN}List all KinD clusters: ${E_GREEN}" 
+    echo ""
     kind get clusters
+    echo ""
     $ECHO_E "${RED}Do you want to delete above KinD clusters? $E_RED"
+    
     while true; do
       read -p "Type 'Y' to delete them all, or 'N' to skip: " yn 
       case $yn in
@@ -177,15 +187,20 @@ fi
 ip="${ip#"${ip%%[![:space:]]*}"}"
 
 cluster_name=$1
-cluster_num=
+cluster_num=0
 echo $1 | grep -q "^[0-9]*$"
 if [[ $? == 0 ]]; then
   cluster_num=$1
-  cluster_name=cluster$1
-  # echo "You choose to use $1"
+  if [[ "$1" == "" ]]; then
+    cluster_num=1 
+  fi
+  
+  cluster_name=cluster${cluster_num}
+  echo "* cluster_num ${cluster_num}"
 else
   cluster_num=$((cluster_num + 1))
   cluster_name=$1
+  echo "# cluster_num ${cluster_num}"
 fi
 
 echo "You are choosing to install KinD cluster: ${cluster_name}"
