@@ -106,29 +106,6 @@ if [[ $(docker network ls | grep -c kind) == 0 ]]; then
 fi
 
 cluster_num=$(kind get clusters | wc -l)
-
-if [ "$1" == "cleanup" ]; then
-
-  if [[ $((cluster_num)) > 0 ]]; then
-    $ECHO_E "${GREEN}List all KinD clusters: ${E_GREEN}" 
-    echo ""
-    kind get clusters
-    echo ""
-    $ECHO_E "${RED}Do you want to delete above KinD clusters? $E_RED"
-    
-    while true; do
-      read -p "Type 'Y' to delete them all, or 'N' to skip: " yn 
-      case $yn in
-        [Yy]* ) break;;
-        [Nn]* ) exit 0;;
-        * ) echo "" ; echo "Please answer yes or no." ;;
-      esac
-    done    
-    kind get clusters | while read -r r; do kind delete cluster --name $r; done
-  fi
-  exit 0
-fi
-
 user_memory=$(free | awk '{print $7}' | awk 'NR==2')
 min_memory=2048000
 if [[ ${user_memory} -lt ${min_memory} ]]; then
@@ -144,7 +121,7 @@ menu() {
     if [[ "$msg" ]]; then echo "$msg"; fi
 }
 
-ip_addr=$(ip a | grep -v kube | grep -v 127.0.0.1 | grep -v docker | grep -v 'br\-' | grep inet | grep -v inet6 | sed 's/\//\ /g' | awk '{print $2}')
+ip_addr=$(ip a | grep -v kind | grep -v kube | grep -v 127.0.0.1 | grep -v docker | grep -v 'br\-' | grep inet | grep -v inet6 | sed 's/\//\ /g' | awk '{print $2}')
 
 options=(${ip_addr})
 options_num="${#options[@]}"
@@ -187,20 +164,26 @@ fi
 ip="${ip#"${ip%%[![:space:]]*}"}"
 
 cluster_name=$1
-cluster_num=0
+
 echo $1 | grep -q "^[0-9]*$"
 if [[ $? == 0 ]]; then
-  cluster_num=$1
-  if [[ "$1" == "" ]]; then
-    cluster_num=1 
+  
+  # echo "* cluster_num ${cluster_num} $1"
+  if [[ "${cluster_num}" == "" ]]; then
+    # echo "==="
+    cluster_num=1
+  else
+    # echo "+++"
+    cluster_num=$((cluster_num + 1))
   fi
   
   cluster_name=cluster${cluster_num}
-  echo "* cluster_num ${cluster_num}"
+  # echo "* cluster_num ${cluster_num}"
 else
+  # echo "---"
   cluster_num=$((cluster_num + 1))
   cluster_name=$1
-  echo "# cluster_num ${cluster_num}"
+  # echo "# cluster_num ${cluster_num}"
 fi
 
 echo "You are choosing to install KinD cluster: ${cluster_name}"
@@ -272,18 +255,18 @@ EOF
 
 if [[ $(kind get clusters | grep ${cluster_name} | wc -l) < 1 ]]; then
 
-install_cluster $@
+  install_cluster $@
 
-# kubectl apply -f https://docs.projectcalico.org/v3.8/manifests/calico.yaml
-# kubectl -n kube-system set env daemonset/calico-node FELIX_IGNORELOOSERPF=true
+  # kubectl apply -f https://docs.projectcalico.org/v3.8/manifests/calico.yaml
+  # kubectl -n kube-system set env daemonset/calico-node FELIX_IGNORELOOSERPF=true
 fi
 
 cd "${work_dir}"
 
 # Post installations
+$ECHO_E "Post installations"
 
 cluster=kind-${cluster_name}
-
 
 kubectl --context $cluster apply -f namespace.yaml
 kubectl --context $cluster -n metallb-system apply -f metallb.yaml
@@ -304,5 +287,5 @@ data:
       - "${ip16}.25${cluster_num}.1-${ip16}.25${cluster_num}.255"
 _EOF
 
-echo -e "${GREEN}✔${E_GREEN} Mercury have been created"
+$ECHO_E "${GREEN}✔${E_GREEN} Mercury have been created"
 
