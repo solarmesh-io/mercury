@@ -82,13 +82,14 @@ function is_exist() {
   which $1 &> /dev/null
   if [[ $? != 0 ]]; then
     echo "$1 does not exist, please install $1 $2 or higher version"
+    echo "You may download it from this link: $3 "
     exit -1
   fi
 }
 
-is_exist docker v0.19.0
-is_exist kubectl v1.17.5
-is_exist kind v0.10.0
+is_exist docker v0.19.0 https://docs.docker.com/get-docker/
+is_exist kubectl v1.17.5 https://dl.k8s.io/release/v1.17.5/bin/linux/amd64/kubectl
+is_exist kind v0.10.0 http://share.solarmesh.cn/release/k8s/kind/Linux/kind
 
 if [[ $(docker network ls | grep -c kind) == 0 ]]; then
   docker network create --driver=bridge \
