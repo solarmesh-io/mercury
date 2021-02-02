@@ -100,10 +100,10 @@ is_exist docker v0.19.0 install "https://docs.docker.com/get-docker/"
 is_exist kubectl v1.17.5 download "https://dl.k8s.io/release/v1.17.5/bin/linux/amd64/kubectl"
 is_exist kind v0.10.0 download "https://github.com/kubernetes-sigs/kind/releases/download/v0.10.0/kind-linux-amd64"
 
-if [[ $(docker network ls | grep -c kind) == 0 ]]; then
-  docker network create --driver=bridge \
-    -o 'com.docker.network.bridge.name=kind' kind
-fi
+# if [[ $(docker network ls | grep -c kind) == 0 ]]; then
+#   docker network create --driver=bridge \
+#     -o 'com.docker.network.bridge.name=kind' kind
+# fi
 
 cluster_num=$(kind get clusters | wc -l)
 user_memory=$(free | awk '{print $7}' | awk 'NR==2')
@@ -194,10 +194,8 @@ if [[ $(kind get clusters 2 &> /dev/null | grep -cnw ${cluster_name}) -gt 0 ]]; 
   exit -1
 fi
 
-ip16=$(docker network inspect kind | grep Gateway | grep -v '::' | awk '{print $2}' | sed s/\"//g | sed s/.0.1//g)
-
 echo
-echo -e "${GREEN}Mercury is installing ${cluster_name} with virtual IP ${ip16}.25${cluster_num}.0/24 on host ${ip} ...${E_GREEN}"
+echo -e "${GREEN}Mercury is installing ${cluster_name} on host ${ip} ...${E_GREEN}"
 echo
 
 # reg_name='kind-registry'
@@ -263,6 +261,9 @@ fi
 
 cd "${work_dir}"
 
+ip16=$(docker network inspect kind | grep Gateway | grep -v '::' | awk '{print $2}' | sed s/\"//g | sed s/.0.1//g)
+$ECHO_E "${GREEN}KinD virtual IP ${ip16}.25${cluster_num}.0/24${E_GREEN}"
+
 # Post installations
 $ECHO_E "Post installations"
 
@@ -287,5 +288,5 @@ data:
       - "${ip16}.25${cluster_num}.1-${ip16}.25${cluster_num}.255"
 _EOF
 
-$ECHO_E "${GREEN}✔${E_GREEN} Mercury have been created"
+$ECHO_E "${GREEN}✔${E_GREEN} ${cluster_name} have been created"
 
