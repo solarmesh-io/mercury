@@ -5,7 +5,7 @@
 ## Getting started
 
 ```bash
-git clone https://github.com/john-deng/mercury.git
+git clone https://github.com/solarmesh-io/mercury.git
 cd mercury
 ./install
 ```
