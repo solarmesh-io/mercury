@@ -34,8 +34,10 @@ if [ "${HOST_PORT}" == "" ]; then
     HOST_PORT=${CONTAINER_PORT}
 fi
 
-iptables -t nat -${ACTION} POSTROUTING -p tcp --dport ${HOST_PORT} -s ${CONTAINER_IP} -d ${CONTAINER_IP} -j MASQUERADE
-iptables -t nat -${ACTION} DOCKER ! -i ${INTERFACE} -p tcp --dport ${HOST_PORT} -j DNAT --to-destination ${CONTAINER_IP}:${CONTAINER_PORT}
+iptables -t nat -${ACTION} POSTROUTING --source ${CONTAINER_IP} --destination ${CONTAINER_IP} -p tcp --dport ${HOST_PORT} -j MASQUERADE
+iptables -t nat -${ACTION} DOCKER ! -i ${INTERFACE} --source 0.0.0.0/0 --destination 0.0.0.0/0 -p tcp --dport ${HOST_PORT}  -j DNAT --to ${CONTAINER_IP}:${CONTAINER_PORT}
+iptables -${ACTION} DOCKER ! -i ${INTERFACE} -o ${INTERFACE} --source 0.0.0.0/0 --destination ${CONTAINER_IP} -p tcp --dport ${HOST_PORT} -j ACCEPT
 
 iptables -t nat -nvL --line-number | grep MASQUERADE | grep ${HOST_PORT} | grep ${CONTAINER_IP}
 iptables -t nat -nvL --line-number | grep "${CONTAINER_IP}:${CONTAINER_PORT}"
+iptables -S DOCKER| grep ${CONTAINER_IP}
