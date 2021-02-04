@@ -19,7 +19,7 @@ fi
 ip1=$(echo $CONTAINER_IP | cut -d "." -f 1)
 ip2=$(echo $CONTAINER_IP | cut -d "." -f 2)
 ip16=$ip1.$ip2
-INTERFACE=$(ip a | grep -v kube | grep -v docker | grep -vw '127.0.0.1' | grep inet | grep -v inet6 | sed 's/\//\ /g' | grep 172.18 | awk '{print $NF}')
+INTERFACE=$(ip a | grep -v kube | grep -v docker | grep -vw '127.0.0.1' | grep inet | grep -v inet6 | sed 's/\//\ /g' | grep ${ip16} | awk '{print $NF}')
 
 if [ "${ACTION}" == "add" ]; then
     ACTION=A
