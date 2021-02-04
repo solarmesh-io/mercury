@@ -4,7 +4,7 @@ CONTAINER_IP=$2
 CONTAINER_PORT=$3
 HOST_PORT=$4
 
-if [[ $# -lt 3 ]] || [[ "$1" == "-h" ]]; then
+if [[ $# -lt 2 ]] || [[ "$1" == "-h" ]]; then
     echo "Help:"
     echo ""
     echo "command:"
@@ -25,6 +25,8 @@ if [ "${ACTION}" == "add" ]; then
     ACTION=A
 elif [ "${ACTION}" == "del" ]; then   
     ACTION=D
+elif [ "${ACTION}" == "get" ]; then    
+    echo ""
 else
     echo "unsupported action $1"
     exit -1    
@@ -34,9 +36,11 @@ if [ "${HOST_PORT}" == "" ]; then
     HOST_PORT=${CONTAINER_PORT}
 fi
 
-iptables -t nat -${ACTION} POSTROUTING --source ${CONTAINER_IP} --destination ${CONTAINER_IP} -p tcp --dport ${HOST_PORT} -j MASQUERADE
-iptables -t nat -${ACTION} DOCKER ! -i ${INTERFACE} --source 0.0.0.0/0 --destination 0.0.0.0/0 -p tcp --dport ${HOST_PORT}  -j DNAT --to ${CONTAINER_IP}:${CONTAINER_PORT}
-iptables -${ACTION} DOCKER ! -i ${INTERFACE} -o ${INTERFACE} --source 0.0.0.0/0 --destination ${CONTAINER_IP} -p tcp --dport ${HOST_PORT} -j ACCEPT
+if [ "${ACTION}" != "get" ]; then    
+    iptables -t nat -${ACTION} POSTROUTING --source ${CONTAINER_IP} --destination ${CONTAINER_IP} -p tcp --dport ${HOST_PORT} -j MASQUERADE
+    iptables -t nat -${ACTION} DOCKER ! -i ${INTERFACE} --source 0.0.0.0/0 --destination 0.0.0.0/0 -p tcp --dport ${HOST_PORT}  -j DNAT --to ${CONTAINER_IP}:${CONTAINER_PORT}
+    iptables -${ACTION} DOCKER ! -i ${INTERFACE} -o ${INTERFACE} --source 0.0.0.0/0 --destination ${CONTAINER_IP} -p tcp --dport ${HOST_PORT} -j ACCEPT
+fi
 
 iptables -t nat -nvL --line-number | grep MASQUERADE | grep ${HOST_PORT} | grep ${CONTAINER_IP}
 iptables -t nat -nvL --line-number | grep "${CONTAINER_IP}:${CONTAINER_PORT}"
