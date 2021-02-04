@@ -42,6 +42,9 @@ if [ "${ACTION}" != "get" ]; then
     iptables -${ACTION} DOCKER ! -i ${INTERFACE} -o ${INTERFACE} --source 0.0.0.0/0 --destination ${CONTAINER_IP} -p tcp --dport ${HOST_PORT} -j ACCEPT
 fi
 
-iptables -t nat -nvL --line-number | grep MASQUERADE | grep ${HOST_PORT} | grep ${CONTAINER_IP}
-iptables -t nat -nvL --line-number | grep "${CONTAINER_IP}:${CONTAINER_PORT}"
+# iptables -t nat -nvL --line-number | grep MASQUERADE | grep ${HOST_PORT} | grep ${CONTAINER_IP}
+# iptables -t nat -nvL --line-number | grep "${CONTAINER_IP}:${CONTAINER_PORT}"
+
+iptables -t nat -S POSTROUTING | grep ${CONTAINER_IP}
+iptables -t nat -S DOCKER | grep ${CONTAINER_IP}
 iptables -S DOCKER| grep ${CONTAINER_IP}
