@@ -39,7 +39,7 @@ fi
 if [ "${ACTION}" != "get" ]; then    
     iptables -t nat -${ACTION} POSTROUTING --source ${CONTAINER_IP} --destination ${CONTAINER_IP} -p tcp --dport ${HOST_PORT} -j MASQUERADE
     iptables -t nat -${ACTION} DOCKER ! -i ${INTERFACE} --source 0.0.0.0/0 --destination 0.0.0.0/0 -p tcp --dport ${HOST_PORT}  -j DNAT --to ${CONTAINER_IP}:${CONTAINER_PORT}
-    iptables -${ACTION} DOCKER ! -i ${INTERFACE} -o ${INTERFACE} --source 0.0.0.0/0 --destination ${CONTAINER_IP} -p tcp --dport ${HOST_PORT} -j ACCEPT
+    iptables -${ACTION} DOCKER ! -i ${INTERFACE} -o ${INTERFACE} --source 0.0.0.0/0 --destination ${CONTAINER_IP} -p tcp --dport ${CONTAINER_PORT} -j ACCEPT
 fi
 
 # iptables -t nat -nvL --line-number | grep MASQUERADE | grep ${HOST_PORT} | grep ${CONTAINER_IP}
