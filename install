@@ -30,7 +30,6 @@ echo "   ./install cluster1 6441"
 exit 0
 fi
 
-
 export COLOR_PREFIX="\e"
 export ECHO_E="echo -e"
 if [ "$OS" == "Darwin" ]; then
@@ -96,8 +95,10 @@ function is_exist() {
   fi
 }
 
+KUBE_VER=${KUBE_VER:-v1.17.5}
+
 is_exist docker v0.19.0 install "https://docs.docker.com/get-docker/"
-is_exist kubectl v1.17.5 download "https://dl.k8s.io/release/v1.17.5/bin/linux/amd64/kubectl"
+is_exist kubectl ${KUBE_VER} download "https://dl.k8s.io/release/${KUBE_VER}/bin/linux/amd64/kubectl"
 is_exist kind v0.10.0 download "https://github.com/kubernetes-sigs/kind/releases/download/v0.10.0/kind-linux-amd64"
 
 # if [[ $(docker network ls | grep -c kind) == 0 ]]; then
@@ -205,7 +206,7 @@ work_dir="$PWD"
 
 # The default version of k8s under Linux is 1.18
 # https://github.com/solo-io/service-mesh-hub/issues/700
-kindImage=kindest/node:v1.17.5
+kindImage=kindest/node:${KUBE_VER}
 
 # set up each cluster
 # Create NodePort for remote cluster so it can be reachable from the management plane.
