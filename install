@@ -95,7 +95,7 @@ function is_exist() {
   fi
 }
 
-KUBE_VER=${KUBE_VER:-v1.17.5}
+KUBE_VER=${KUBE_VER:-v1.18.15}
 
 is_exist docker v0.19.0 install "https://docs.docker.com/get-docker/"
 is_exist kubectl ${KUBE_VER} download "https://dl.k8s.io/release/${KUBE_VER}/bin/linux/amd64/kubectl"
@@ -228,6 +228,8 @@ networking:
   apiServerAddress: "${ip}"
   apiServerPort: ${kubeport}
   kubeProxyMode: "ipvs"
+  podSubnet: "10.24${cluster_num}.0.0/16"  
+  serviceSubnet: "10.9${cluster_num}.0.0/12"
 nodes:
 - role: control-plane
 - role: worker
@@ -237,7 +239,7 @@ kubeadmConfigPatches:
   kind: ClusterConfiguration
   apiServer:
     extraArgs:
-      service-account-api-audiences: "api,istio-ca"
+      service-account-api-audiences: "api"
       service-account-signing-key-file: "/etc/kubernetes/pki/sa.key"
       service-account-issuer: "kubernetes.default.svc"
 EOF
